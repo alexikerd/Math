@@ -169,7 +169,9 @@ class DQNAgent:
 
         
         for index, (state, action, reward, state_prime) in enumerate(minibatch):
-  
+            
+    
+            
             while(np.array_equal(state,state_prime)==False):
                 
 
@@ -180,8 +182,8 @@ class DQNAgent:
                  
                     
                     
-                max_future_q = np.max(future_qs_list[0,index])
-                new_q = reward - discount*max_future_q
+                max_future_q = np.max(future_qs_list[0,:])
+                new_q = reward/11 - discount*max_future_q
             
                 current_qs = self.model.predict(state)
                 current_qs[0,np.nonzero(action)[1][0]] = new_q
@@ -191,10 +193,20 @@ class DQNAgent:
                 self.model.fit(state,current_qs,batch_size = minibatch_size, verbose=0,shuffle=False,callbacks=[self.tensorboard])
                 
                 state = state_prime.copy()
-                action = np.zeros((1,200))
-                action[0,np.argmax(agent.get_qs(state))] = 1
+                
+                if np.random.uniform(0,1) > epsilon:
+                    action = np.zeros((1,200))
+                    action[0,np.argmax(agent.get_qs(state))] = 1
+
+
+                else:    
+                    action = np.zeros((1,200))
+                    action[0,random.randint(0,199)] = 1
+                
+
                 state_prime = act(state,action)
                 
+                reward = decompose(state_prime) - decompose(state)
                 
         
         if self.target_update_counter > update_target_every:
@@ -203,6 +215,14 @@ class DQNAgent:
   
         else:
             self.target_update_counter += 1
+            
+
+            
+
+            
+
+            
+
             
 
             
